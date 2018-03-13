@@ -3,6 +3,7 @@
 public class BulletDestroyer : MonoBehaviour
 {
 	private float startTime;
+	public float killTime;
 	private void Start()
 	{
 		startTime = Time.time;
@@ -10,7 +11,7 @@ public class BulletDestroyer : MonoBehaviour
 
 	private void FixedUpdate()
 	{
-		if (Time.time - startTime > 1.0f)
+		if (Time.time - startTime > killTime)
 		{
 			Destroy(gameObject);
 		}

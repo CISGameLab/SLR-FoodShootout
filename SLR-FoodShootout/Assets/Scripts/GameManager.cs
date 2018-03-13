@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -7,18 +8,28 @@ public class GameManager : MonoBehaviour
 {
 	public static GameManager instance;
 
+	public List<Food> collectedFood;
+
 	private float currentTime;
 	private float gameTime;
 
+	public GameObject pickup;
+
 	public GameObject howToPlayMenu;
+	public GameObject finishMenu;
 	public GameObject mainMenu;
+	public GameObject bag;
 
 	private int score;
+	private int items;
 
 	private int highScore;
 
 	public TMP_Text gameScoreText;
 	public TMP_Text currentTimeText;
+	public TMP_Text gameItemsText;
+
+	public TMP_Text resultsText;
 
 	public TMP_Text mainHighScore;
 	public TMP_Text mainScore;
@@ -87,6 +98,7 @@ public class GameManager : MonoBehaviour
 
 		howToPlayMenu.SetActive(false);
 		mainMenu.SetActive(true);
+		finishMenu.SetActive(false);
 
 		gameIsStarted = false;
 		Reset();
@@ -96,8 +108,11 @@ public class GameManager : MonoBehaviour
 	{
 		currentTime = Time.time;
 		score = 0;
+		items = 0;
 		gameScoreText.text = "Score: 0";
 		mainScore.text = "Score: 0";
+		gameItemsText.text = "Items Collected: " + items.ToString();
+		collectedFood = new List<Food>();
 	}
 
 	public void ResetScore()
@@ -109,7 +124,7 @@ public class GameManager : MonoBehaviour
 	{
 		yield return new WaitForSeconds(1.5f);
 		musicSource.Play();
-		mainMenu.SetActive(true);
+		finishMenu.SetActive(true);
 	}
 
 	private void EndGame()
@@ -117,21 +132,21 @@ public class GameManager : MonoBehaviour
 		endSource.Play();
 		gameIsStarted = false;
 		mainScore.text = "Points Earned: " + score.ToString();
+		var goodItems = collectedFood.Where(food => food.isGood).Count();
+		var badItems = collectedFood.Where(food => !food.isGood).Count();
+		resultsText.text = "You collected " + goodItems + " good food items and " + badItems + " bad food items to end up with a total score of " + score;
 		SetScore();
 		StartCoroutine(EndGameDelay());
 	}
 
 	private void SetScore()
 	{
-		//sounds[2].Play();//menu music
-		StopAllCoroutines();
 		if (PlayerPrefs.HasKey("score"))
 		{
 			if (score > PlayerPrefs.GetInt("score"))
 			{
 				SetHighScore();
 				highScoreSource.Play();
-				//display high score UI
 			}
 		}
 		else
@@ -178,5 +193,35 @@ public class GameManager : MonoBehaviour
 	{
 		ButtonNoise();
 		howToPlayMenu.SetActive(false);
+	}
+
+	public void Finish()
+	{
+		ButtonNoise();
+		finishMenu.SetActive(false);
+		mainMenu.SetActive(true);
+	}
+
+	public void CollectFood(Transform targetLoc, Food targetFood)
+	{
+		GameObject newPickup = Instantiate(pickup, targetLoc.position, Quaternion.identity) as GameObject;
+		newPickup.transform.Rotate(0, 90, 0);
+		newPickup.GetComponent<SpriteRenderer>().sprite = targetFood.sprite;
+		collectedFood.Add(targetFood);
+		items++;
+		gameItemsText.text = "Items Collected: " + items.ToString();
+		StartCoroutine(CollectFoodRoutine(newPickup.transform));
+	}
+
+	private IEnumerator CollectFoodRoutine(Transform pickup)
+	{
+		var startTime = Time.time;
+		while (Time.time - startTime < 2.5f)
+		{
+			var time = (Time.time - startTime) / 2.5f;
+			pickup.position = Vector3.Lerp(pickup.position, bag.transform.position, time);
+			pickup.localScale = Vector3.Lerp(Vector3.one, Vector3.zero, time);
+			yield return null;
+		}
 	}
 }

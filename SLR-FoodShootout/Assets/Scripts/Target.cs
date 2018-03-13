@@ -15,6 +15,8 @@ public class Target : MonoBehaviour
 	public AudioSource rollSource;
 	public AudioSource hitSource;
 
+	private Food foodRef;
+
 	public bool isClosed;
 	public bool canMove;
 
@@ -127,21 +129,23 @@ public class Target : MonoBehaviour
 		}
 		hitSource.pitch = Random.Range(0.85f, 1.15f);
 		hitSource.Play();
+		GameManager.instance.CollectFood(boxCollider.gameObject.transform, foodRef);
 		Close();
 	}
 
-	public void Open(float speed, float openTime, Sprite sprite, bool isGood)
+	public void Open(float speed, float openTime, Food food)
 	{
 		anim.SetBool("isClosed", false);
 
 		rollSource.pitch = Random.Range(0.85f, 1.15f);
 		rollSource.Play();
 
-		spriteRenderer.sprite = sprite;
+		spriteRenderer.sprite = food.sprite;
 		timeSinceOpen = Time.time;
+		foodRef = food;
 		this.openTime = openTime;
 		this.speed = speed;
-		this.isGood = isGood;
+		this.isGood = food.isGood;
 
 		boxCollider.enabled = true;
 		isClosed = false;

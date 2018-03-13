@@ -153,7 +153,7 @@ public class TargetManager : MonoBehaviour
 		{
 			var currentTarget = candidates[Random.Range(0, candidates.Count)];
 			var currentFood = foods[Random.Range(0, foods.Count)];
-			currentTarget.Open(25.0f, 5.0f, currentFood.sprite, currentFood.isGood);
+			currentTarget.Open(25.0f, 5.0f, currentFood);
 		}
 	}
 
